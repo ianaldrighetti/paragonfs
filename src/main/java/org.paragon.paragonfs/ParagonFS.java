@@ -3,9 +3,13 @@ package org.paragon.paragonfs;
 import org.apache.commons.lang3.ArrayUtils;
 import org.paragon.paragonfs.archetype.Archetype;
 import org.paragon.paragonfs.paradigm.Paradigm;
+import org.paragon.paragonfs.paradigm.ParadigmIdPool;
+import org.paragon.paragonfs.paradigm.ParadigmUtil;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -13,10 +17,23 @@ import java.util.Map;
  */
 public class ParagonFS
 {
+	private static final String NIX_PATH_SEPARATOR = "/";
+	private static final String WINDOWS_PATH_SEPARATOR = "\\";
+
 	/**
 	 * The directory which is where the instance of this ParagonFS stores all data.
 	 */
 	private final File dir;
+
+	/**
+	 * A {@link ParadigmIdPool} which is used to keep all {@link Paradigm} unique identifiers, well, unique.
+	 */
+	private final ParadigmIdPool paradigmIdPool;
+
+	/**
+	 * The {@link ParadigmUtil} for this {@link ParagonFS}.
+	 */
+	private final ParadigmUtil paradigmUtil;
 
 	/**
 	 * The archetype lock used when interacting with archetypes.
@@ -41,6 +58,9 @@ public class ParagonFS
 		}
 
 		this.dir = new File(path);
+		this.paradigmIdPool = new ParadigmIdPool(this);
+		this.paradigmUtil = new ParadigmUtil(this);
+
 		validateAndInitialize();
 	}
 
@@ -53,6 +73,8 @@ public class ParagonFS
 	public ParagonFS(final File dir)
 	{
 		this.dir = dir;
+		this.paradigmIdPool = new ParadigmIdPool(this);
+		this.paradigmUtil = new ParadigmUtil(this);
 
 		validateAndInitialize();
 	}
@@ -84,7 +106,7 @@ public class ParagonFS
 				continue;
 			}
 
-			archetypes.put(file.getName().toLowerCase(), new Archetype(file));
+			archetypes.put(file.getName().toLowerCase(), new Archetype(this, file));
 		}
 	}
 
@@ -99,7 +121,7 @@ public class ParagonFS
 		if (name == null) {
 			throw new IllegalArgumentException("The archetype name must not be null.");
 		}
-		else if (name.contains("/") || name.contains("\\")) {
+		else if (name.contains(NIX_PATH_SEPARATOR) || name.contains(WINDOWS_PATH_SEPARATOR)) {
 			throw new IllegalArgumentException("The archetype name must not contain a forward or backward slash.");
 		}
 
@@ -114,7 +136,7 @@ public class ParagonFS
 				throw new IllegalArgumentException("The archetype could not be created.");
 			}
 
-			final Archetype archetype = new Archetype(archetypeDir);
+			final Archetype archetype = new Archetype(this, archetypeDir);
 			archetypes.put(archetypeDir.getName().toLowerCase(), archetype);
 
 			return archetype;
@@ -140,6 +162,19 @@ public class ParagonFS
 	}
 
 	/**
+	 * Returns a list of all {@link Archetype}'s.
+	 *
+	 * @return A list of all {@link Archetype}'s, not sorted in any particular order.
+	 */
+	public List<Archetype> list()
+	{
+		synchronized (archetypeLock)
+		{
+			return new ArrayList<>(archetypes.values());
+		}
+	}
+
+	/**
 	 * Deletes the {@link Archetype} if it exists and it's empty.
 	 *
 	 * @param name The name of the {@link Archetype} to remove.
@@ -160,5 +195,35 @@ public class ParagonFS
 
 			// TODO delete and remove archetype from map.
 		}
+	}
+
+	/**
+	 * Returns the {@link ParadigmIdPool} for the {@link ParagonFS}.
+	 *
+	 * @return The {@link ParadigmIdPool} for this {@link ParagonFS}.
+	 */
+	public ParadigmIdPool getParadigmIdPool()
+	{
+		return paradigmIdPool;
+	}
+
+	/**
+	 * Returns the {@link ParadigmUtil} for this {@link ParagonFS}.
+	 *
+	 * @return {@link ParadigmUtil}
+	 */
+	public ParadigmUtil getParadigmUtil()
+	{
+		return paradigmUtil;
+	}
+
+	/**
+	 * Returns a {@link File} with the path to the root directory of this {@link ParagonFS}.
+	 *
+	 * @return A {@link File} with the path to the root directory of this {@link ParagonFS}.
+	 */
+	public File getDir()
+	{
+		return new File(dir.getAbsolutePath());
 	}
 }
