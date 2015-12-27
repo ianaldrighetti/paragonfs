@@ -1,9 +1,12 @@
 package org.paragon.paragonfs.paradigm;
 
+import org.apache.commons.lang3.StringUtils;
 import org.paragon.paragonfs.ParagonFS;
 import org.paragon.paragonfs.archetype.Archetype;
+import org.paragon.paragonfs.exception.ParagonFSException;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Paths;
 
 /**
@@ -61,5 +64,48 @@ public class ParadigmUtil
 							paradigmId.substring(3, 6),
 							paradigmId.substring(6, 9),
 							paradigmId + ".json").toString();
+	}
+
+	/**
+	 * Creates a new {@link Paradigm} within the {@link Archetype}.
+	 *
+	 * @param archetype The {@link Archetype} to create the {@link Paradigm} under.
+	 * @param paradigmId The ID of the {@link Paradigm} to create.
+	 * @return The created {@link Paradigm}.
+	 * @throws ParagonFSException Thrown if an exception occurs while attempting to create the Paradigm.
+	 */
+	public Paradigm create(final Archetype archetype, final String paradigmId) throws ParagonFSException
+	{
+		if (archetype == null) {
+			throw new IllegalArgumentException("The archetype must not be null.");
+		}
+
+		if (StringUtils.isBlank(paradigmId)) {
+			throw new IllegalArgumentException("The paradigm ID must not be blank.");
+		}
+
+		final String paradigmPath = Paths.get(paragonFS.getDir().getAbsolutePath(), getParadigmPath(paradigmId)).toString();
+		final File paradigmFile = new File(paradigmPath);
+
+		if (paradigmFile.exists()) {
+			throw new IllegalArgumentException("The paradigm already exists.");
+		}
+
+		if (!paradigmFile.mkdirs()) {
+			throw new IllegalArgumentException("The paradigm could not be created as the parent directories do not exist.");
+		}
+
+		try
+		{
+			if (!paradigmFile.createNewFile()) {
+				throw new ParagonFSException("The paradigm could not be created.");
+			}
+		}
+		catch (final IOException e)
+		{
+			throw new ParagonFSException("The paradigm could not be created.", e);
+		}
+
+		return new Paradigm(archetype, paradigmFile, paradigmId);
 	}
 }
