@@ -1,6 +1,7 @@
 package org.paragon.paragonfs;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.paragon.paragonfs.archetype.Archetype;
 import org.paragon.paragonfs.paradigm.Paradigm;
 import org.paragon.paragonfs.paradigm.ParadigmIdPool;
@@ -19,6 +20,7 @@ public class ParagonFS
 {
 	private static final String NIX_PATH_SEPARATOR = "/";
 	private static final String WINDOWS_PATH_SEPARATOR = "\\";
+	public static final String THE_PATH_MUST_NOT_BE_EMPTY = "The path must not be empty.";
 
 	/**
 	 * The directory which is where the instance of this ParagonFS stores all data.
@@ -53,8 +55,8 @@ public class ParagonFS
 	 */
 	public ParagonFS(final String path)
 	{
-		if (path == null) {
-			throw new IllegalArgumentException("The path must not be null.");
+		if (path == null || StringUtils.isBlank(path)) {
+			throw new IllegalArgumentException(THE_PATH_MUST_NOT_BE_EMPTY);
 		}
 
 		this.dir = new File(path);
