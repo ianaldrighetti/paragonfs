@@ -9,7 +9,7 @@ public class StringType extends DataType
 
 	public void setValue(final Object value)
 	{
-		if (value instanceof CharSequence)
+		if (value != null)
 		{
 			this.value = value.toString();
 		}

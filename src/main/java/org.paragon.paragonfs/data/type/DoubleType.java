@@ -13,6 +13,15 @@ public class DoubleType extends DataType
 		{
 			this.value = ((Number) value).doubleValue();
 		}
+		else if (value != null)
+		{
+			try {
+				this.value = Double.parseDouble(value.toString());
+			}
+			catch (final Exception e) {
+				this.value = null;
+			}
+		}
 		else
 		{
 			this.value = null;

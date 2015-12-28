@@ -13,6 +13,15 @@ public class IntegerType extends DataType
 		{
 			this.value = ((Number) value).intValue();
 		}
+		else if (value != null)
+		{
+			try {
+				this.value = Integer.parseInt(value.toString());
+			}
+			catch (final Exception e) {
+				this.value = null;
+			}
+		}
 		else
 		{
 			this.value = null;

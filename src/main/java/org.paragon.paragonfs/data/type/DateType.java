@@ -20,6 +20,10 @@ public class DateType extends DataType
 		{
 			this.value = ((Calendar) value).getTime();
 		}
+		else if (value != null)
+		{
+			// TODO convert string to Date.
+		}
 		else
 		{
 			this.value = null;
